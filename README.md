@@ -89,7 +89,7 @@ dft_force_gauge.short_output()
 dft_force_gauge.mini_output()
 ```
 
-### Output live data of 1000 rows:
+### Output live data of 100 rows:
 
 *Note: 
 The output rate is roughly 10 data points per second.
