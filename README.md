@@ -54,35 +54,39 @@ if dft_force_gauge.connect():
 
 ### Basic device serial operations:
 
+#### Returns boolean value
 ```
-# Print current value
-print(dft_force_gauge.print_value())
-
 # Change device modes, peak and tracking
-print(dft_force_gauge.mode())
+dft_force_gauge.mode()
 
 # Change the units on device
-print(dft_force_gauge.unit())
+dft_force_gauge.unit()
 
 # Reset the current device value
-print(dft_force_gauge.reset())
+dft_force_gauge.reset()
 
 # Zero (Tare) the value on device
-print(dft_force_gauge.zero())
+dft_force_gauge.zero()
+```
 
+#### Returns string value
+```
 # Download data from device memory
-print(dft_force_gauge.download())
+dft_force_gauge.download()
+
+# Print current value
+dft_force_gauge.print_value()
 
 # Print peak compression value
-print(dft_force_gauge.peak_compression())
+dft_force_gauge.peak_compression()
 
 # Print peak tension value
-print(dft_force_gauge.peak_tension())
+dft_force_gauge.peak_tension()
 
 # Print different formatted outputs
-print(dft_force_gauge.long_output())
-print(dft_force_gauge.short_output())
-print(dft_force_gauge.mini_output())
+dft_force_gauge.long_output()
+dft_force_gauge.short_output()
+dft_force_gauge.mini_output()
 ```
 
 ### Output live data of 1000 rows:
