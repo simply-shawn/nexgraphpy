@@ -8,8 +8,15 @@ NexGraph Python Library
 1. [Tutorials](tutorials.md)
 2. [How-To Guides](how-to-guides.md)
 3. [Reference](reference.md)
-4. [Explanation](explanations.md)
+4. [Explanations](explanations.md)
 
 ## Project Overview
 
 ::: nexgraphpy
+
+## Project Websites
+
+- [GitHub](https://github.com/simply-shawn/nexgraphpy)
+- [PyPi](https://pypi.org/project/nexgraphpy/)
+
+Please log any issues on GitHub: <https://github.com/simply-shawn/nexgraphpy/issues>
