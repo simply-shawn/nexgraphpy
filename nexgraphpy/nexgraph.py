@@ -44,9 +44,9 @@ class NexGraph:
         - `long_output()`: Returns the current value in long format.
     """
 
-    def __init__(self,device_info = ""):
-        self.device_info: str = device_info
-        self.device_path: str = ""
+    def __init__(self,device_path = ""):
+        self.device_info: str = ""
+        self.device_path: str = device_path if device_path else ""
         self.device_command: dict = {
             "svalue": 'v'.encode(),
             "print": 'x'.encode(),
