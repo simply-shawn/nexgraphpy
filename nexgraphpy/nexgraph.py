@@ -5,7 +5,7 @@ Description: NexGraph Python library for Nextech force gauges.
 Author: Shawn Myratchapon
 Website: https://simplyshawn.co.th
 NexGraph: https://nexgraphapp.com
-Version: 1.0.0 beta
+Version: 1.0.1 beta
 """
 
 import time
@@ -44,14 +44,14 @@ class NexGraph:
         - `long_output()`: Returns the current value in long format.
     """
 
-    def __init__(self):
-        self.device_info: str = ""
+    def __init__(self,device_info = ""):
+        self.device_info: str = device_info
         self.device_path: str = ""
         self.device_command: dict = {
-            "mvalue": 'v'.encode(),
+            "svalue": 'v'.encode(),
             "print": 'x'.encode(),
-            "rvalue": 'l'.encode(),
-            "svalue": 'L'.encode(),
+            "lvalue": 'l'.encode(),
+            "mvalue": 'L'.encode(),
             "ptension": 'p'.encode(),
             "pcompress": 'c'.encode(),
             "info": '!'.encode(),
@@ -63,9 +63,13 @@ class NexGraph:
         }
         self.usb_serial = None
 
-    def print_os_error(self):
-        """Prints the connection error message."""
-        print(f"Error connecting to device on {self.device_path}.")
+    def print_error(self, error_type):
+        """Prints the corresponding error message."""
+        match error_type:
+            case "os":
+                print(f"OS error connecting to device on {self.device_path}.")
+            case "perm":
+                print(f"Permission error connecting to device on {self.device_path}.")
 
     def find(self) -> bool:
         """Finds USB serial devices.
@@ -114,10 +118,13 @@ class NexGraph:
                 if "DFS" or "DFT" in arr_info[0]:
                     status = True
                     return status
-                else:
-                    return status
+
+                return status
+            except PermissionError:
+                self.print_error("perm")
+                return status
             except OSError:
-                self.print_os_error()
+                self.print_error("os")
                 return status
         else:
             print("The device connection path is empty.")
@@ -144,7 +151,7 @@ class NexGraph:
 
             return print_output
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return None
 
     def zero(self) -> bool:
@@ -158,7 +165,7 @@ class NexGraph:
             status = True
             return status
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return status
 
     def mode(self) -> bool:
@@ -172,7 +179,7 @@ class NexGraph:
             status = True
             return status
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return status
 
     def unit(self) -> bool:
@@ -186,7 +193,7 @@ class NexGraph:
             status = True
             return status
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return status
 
     def reset(self) -> bool:
@@ -200,7 +207,7 @@ class NexGraph:
             status=True
             return status
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return status
 
     def peak_tension(self) -> str:
@@ -217,7 +224,7 @@ class NexGraph:
 
             return peak_tension
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return None
 
     def peak_compression(self) -> str:
@@ -234,7 +241,7 @@ class NexGraph:
 
             return peak_compression
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return None
 
     def download(self) -> str:
@@ -251,7 +258,7 @@ class NexGraph:
 
             return mem_data
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return None
 
     def mini_output(self)  -> str:
@@ -259,23 +266,6 @@ class NexGraph:
         
         Returns:
             string: Current value from the device. Mini format."""
-        try:
-            self.usb_serial.write(self.device_command["svalue"])
-            time.sleep(0.1)
-            s_output: str = ""
-            while self.usb_serial.in_waiting:
-                s_output += self.usb_serial.readline().decode("Ascii")
-
-            return s_output
-        except OSError:
-            self.print_os_error()
-            return None
-
-    def short_output(self) -> str:
-        """Get short output from Nextech Gauge.
-        
-        Returns:
-            string: Current value from the device. Short format."""
         try:
             self.usb_serial.write(self.device_command["mvalue"])
             time.sleep(0.1)
@@ -285,7 +275,24 @@ class NexGraph:
 
             return s_output
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
+            return None
+
+    def short_output(self) -> str:
+        """Get short output from Nextech Gauge.
+        
+        Returns:
+            string: Current value from the device. Short format."""
+        try:
+            self.usb_serial.write(self.device_command["svalue"])
+            time.sleep(0.1)
+            s_output: str = ""
+            while self.usb_serial.in_waiting:
+                s_output += self.usb_serial.readline().decode("Ascii")
+
+            return s_output
+        except OSError:
+            self.print_error("os")
             return None
 
     def long_output(self) -> str:
@@ -294,7 +301,7 @@ class NexGraph:
         Returns:
             string: Current value from the device. Normal format."""
         try:
-            self.usb_serial.write(self.device_command["rvalue"])
+            self.usb_serial.write(self.device_command["lvalue"])
             time.sleep(0.1)
             s_output: str = ""
             while self.usb_serial.in_waiting:
@@ -302,7 +309,7 @@ class NexGraph:
 
             return s_output
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return None
 
     def disconnect(self) -> bool:
@@ -317,5 +324,5 @@ class NexGraph:
             status = True
             return status
         except OSError:
-            self.print_os_error()
+            self.print_error("os")
             return status

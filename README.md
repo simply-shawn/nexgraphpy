@@ -42,14 +42,13 @@ else:
 ### Connect to a Nextech force gauge directly:
 
 ```
+# Initialize with device the path
+dft_force_gauge = NexGraph("COM3")
+
+# Or set the device path after initializing
 dft_force_gauge.device_path = "COM3"
-if dft_force_gauge.connect():
-        print(dft_force_gauge.get_info())
-        dft_force_gauge.disconnect()
-        dft_force_gauge = None
-    else:
-        print("Unable to connect")
-        exit()
+
+# Connect to device after setting the path
 ```
 
 ### Basic device serial operations:

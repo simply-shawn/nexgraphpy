@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nexgraphpy"
-version = "1.0.0"
+version = "1.0.1"
 description = 'Python library for connecting with Nextech force gauges over USB Serial'
 readme = "README.md"
 requires-python = ">=3.10"
-license = { file = "LICENSE" }
+license = "GPL-3.0-only WITH Classpath-Exception-2.0 OR BSD-3-Clause"
 keywords = ["nextech","nexgraph"]
 authors = [{ name = "Shawn Myratchapon", email = "info@nexgraphapp.com" }]
 
@@ -22,4 +22,5 @@ classifiers = [
 dependencies = [ "pyserial" ]
 
 [project.urls]
-Website = "https://github.com/simply-shawn/nexgraphpy"
+GitHub = "https://github.com/simply-shawn/nexgraphpy"
+Documentation = "https://python.nexgraphapp.com/"

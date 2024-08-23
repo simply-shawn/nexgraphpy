@@ -2,12 +2,12 @@ from distutils.core import setup
 setup(
     name = 'nexgraphpy',
     packages = ['nexgraphpy'],
-    version = '1.0.0',
-    license = 'GNU',
+    version = '1.0.1',
+    license = 'GNU General Public License',
     description = 'Python library to connect to Nextech DFS or DFT force gauges.',
     author = 'Shawn Myratchapon',
-    url = '',
-    download_url = '',
+    url = 'https://python.nexgraphapp.com/',
+    download_url = 'https://pypi.org/project/nexgraphpy/',
     install_requires=[
           'pyserial',
       ],
