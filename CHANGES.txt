@@ -1,7 +1,7 @@
 Nexgraph Python library
 version 1.0.0
-    - Initial beta release
+    - Initial beta release.
 version 1.0.1
-    - Updated documentation, links
-    - Easier initialization when device path is known
-    - Better handling for permission errors
+    - Updated documentation and project URLs.
+    - Easier initialization if device path is known.
+    - Better error handling.

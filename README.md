@@ -49,6 +49,8 @@ dft_force_gauge = NexGraph("COM3")
 dft_force_gauge.device_path = "COM3"
 
 # Connect to device after setting the path
+if dft_force_gauge.connect():
+    ...
 ```
 
 ### Basic device serial operations:

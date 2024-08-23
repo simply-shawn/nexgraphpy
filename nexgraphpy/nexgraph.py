@@ -63,14 +63,6 @@ class NexGraph:
         }
         self.usb_serial = None
 
-    def print_error(self, error_type):
-        """Prints the corresponding error message."""
-        match error_type:
-            case "os":
-                print(f"OS error connecting to device on {self.device_path}.")
-            case "perm":
-                print(f"Permission error connecting to device on {self.device_path}.")
-
     def find(self) -> bool:
         """Finds USB serial devices.
         
@@ -102,12 +94,12 @@ class NexGraph:
         """
         status: bool = False
         if self.device_path:
-            self.usb_serial = serial.Serial(port=self.device_path,
+            try:
+                self.usb_serial = serial.Serial(port=self.device_path,
                                             bytesize=8,
                                             baudrate=38400,
                                             timeout=2,
                                             stopbits=serial.STOPBITS_ONE)
-            try:
                 self.usb_serial.write(self.device_command['info'])
                 time.sleep(0.1)
 
@@ -115,16 +107,24 @@ class NexGraph:
                     self.device_info += self.usb_serial.readline().decode("Ascii")
                     arr_info = self.device_info.split()
 
-                if "DFS" or "DFT" in arr_info[0]:
+                if "DFS" in arr_info[0] or "DFT" in arr_info[0]:
                     status = True
                     return status
-
                 return status
-            except PermissionError:
-                self.print_error("perm")
+            except serial.PortNotOpenError as pnoe:
+                print(f"[ERROR]: NexGraph.connect() : {pnoe}")
                 return status
-            except OSError:
-                self.print_error("os")
+            except serial.SerialTimeoutException as ste:
+                print(f"[ERROR]: NexGraph.connect() : {ste}")
+                return status
+            except serial.SerialException as se:
+                print(f"[ERROR]: NexGraph.connect() : {se}")
+                return status
+            except PermissionError as pe:
+                print(f"[ERROR]: NexGraph.connect() : {pe}")
+                return status
+            except OSError as ose:
+                print(f"[ERROR]: NexGraph.connect() : {ose}")
                 return status
         else:
             print("The device connection path is empty.")
@@ -150,8 +150,8 @@ class NexGraph:
                 print_output += self.usb_serial.readline().decode("Ascii")
 
             return print_output
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.print_value() : {ose}")
             return None
 
     def zero(self) -> bool:
@@ -164,8 +164,8 @@ class NexGraph:
             self.usb_serial.write(self.device_command['zero'])
             status = True
             return status
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.zero() : {ose}")
             return status
 
     def mode(self) -> bool:
@@ -178,8 +178,8 @@ class NexGraph:
             self.usb_serial.write(self.device_command['mode'])
             status = True
             return status
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.mode() : {ose}")
             return status
 
     def unit(self) -> bool:
@@ -192,8 +192,8 @@ class NexGraph:
             self.usb_serial.write(self.device_command['unit'])
             status = True
             return status
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.unit() : {ose}")
             return status
 
     def reset(self) -> bool:
@@ -206,8 +206,8 @@ class NexGraph:
             self.usb_serial.write(self.device_command['reset'])
             status=True
             return status
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.reset() : {ose}")
             return status
 
     def peak_tension(self) -> str:
@@ -223,8 +223,8 @@ class NexGraph:
                 peak_tension += self.usb_serial.readline().decode("Ascii")
 
             return peak_tension
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.peak_tension() : {ose}")
             return None
 
     def peak_compression(self) -> str:
@@ -240,8 +240,8 @@ class NexGraph:
                 peak_compression += self.usb_serial.readline().decode("Ascii")
 
             return peak_compression
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.peak_compression() : {ose}")
             return None
 
     def download(self) -> str:
@@ -257,8 +257,8 @@ class NexGraph:
                 mem_data += self.usb_serial.readline().decode("Ascii")
 
             return mem_data
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.download() : {ose}")
             return None
 
     def mini_output(self)  -> str:
@@ -274,8 +274,8 @@ class NexGraph:
                 s_output += self.usb_serial.readline().decode("Ascii")
 
             return s_output
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.mini_output() : {ose}")
             return None
 
     def short_output(self) -> str:
@@ -291,8 +291,8 @@ class NexGraph:
                 s_output += self.usb_serial.readline().decode("Ascii")
 
             return s_output
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.short_output() : {ose}")
             return None
 
     def long_output(self) -> str:
@@ -308,8 +308,8 @@ class NexGraph:
                 s_output += self.usb_serial.readline().decode("Ascii")
 
             return s_output
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.long_output() : {ose}")
             return None
 
     def disconnect(self) -> bool:
@@ -323,6 +323,6 @@ class NexGraph:
             self.usb_serial = None
             status = True
             return status
-        except OSError:
-            self.print_error("os")
+        except OSError as ose:
+            print(f"[ERROR]: NexGraph.disconnect() : {ose}")
             return status
