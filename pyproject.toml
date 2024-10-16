@@ -22,5 +22,7 @@ classifiers = [
 dependencies = [ "pyserial" ]
 
 [project.urls]
-GitHub = "https://github.com/simply-shawn/nexgraphpy"
 Documentation = "https://python.nexgraphapp.com/"
+Homepage = "https://github.com/simply-shawn/nexgraphpy"
+Source = "https://github.com/simply-shawn/nexgraphpy"
+Tracker = "https://github.com/simply-shawn/nexgraphpy/issues"
