@@ -2,7 +2,7 @@
 # Nexgraph Python
 
 ## Description:
-NexGraph Python is a Python library implementation of the NexGraph software which works with Nextech brand force gauges.  It provides an easy way to connect to Nextech force gauges using Python.  Despite it's name it does not create graphs as of yet, but does retrieve data from the data to be graphed.
+NexGraph Python is a Python library implementation of the NexGraph software which works with Nextech brand force gauges.  It provides an easy way to connect to Nextech force gauges using Python.  Despite it's name it does not create graphs as of yet, but does retrieve data from the device to be graphed.
 
 This library is under development and more features will be added later.
 
