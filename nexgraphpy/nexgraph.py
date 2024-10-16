@@ -5,7 +5,7 @@ Description: NexGraph Python library for Nextech force gauges.
 Author: Shawn Myratchapon
 Website: https://simplyshawn.co.th
 NexGraph: https://nexgraphapp.com
-Version: 1.0.1 beta
+Version: 1.0.2
 """
 
 import time
