@@ -39,8 +39,8 @@ class NexGraph:
         - `peak_tension()`: Returns the current peak tension value.
         - `peak_compression()`: Returns the current peak compression value.
         - `download()`: Return the data stored on the device memory.
-        - `mini_output`: Returns the current value in mini format.
-        - `short_output`: Returns the current value in short format.
+        - `mini_output()`: Returns the current value in mini format.
+        - `short_output()`: Returns the current value in short format.
         - `long_output()`: Returns the current value in long format.
     """
 
@@ -115,9 +115,9 @@ class NexGraph:
                     self.device_info += self.usb_serial.readline().decode("Ascii")
                     arr_info = self.device_info.split()
 
-                if "DFS" or "DFT" in arr_info[0]:
-                    status = True
-                    return status
+                    if arr_info and ("DFS" in arr_info[0] or "DFT" in arr_info[0]):
+                        status = True
+                        return status
 
                 return status
             except PermissionError:
@@ -261,56 +261,49 @@ class NexGraph:
             self.print_error("os")
             return None
 
-    def mini_output(self)  -> str:
-        """Get mini output from Nextech Gauge.
+    def _get_output(self, command_key: str) -> str:
+        """Helper method to get output from Nextech Gauge.
+        
+        Args:
+            command_key (str): The command key to send to the device.
         
         Returns:
-            string: Current value from the device. Mini format."""
+            str: Current value from the device.
+        """
         try:
-            self.usb_serial.write(self.device_command["mvalue"])
+            self.usb_serial.write(self.device_command[command_key])
             time.sleep(0.1)
             s_output: str = ""
             while self.usb_serial.in_waiting:
                 s_output += self.usb_serial.readline().decode("Ascii")
-
             return s_output
-        except OSError:
-            self.print_error("os")
-            return None
+        except (OSError, serial.SerialException) as e:
+            self.print_error(str(e))
+            return ""
+
+    def mini_output(self) -> str:
+        """Get mini output from Nextech Gauge.
+        
+        Returns:
+            str: Current value from the device. Mini format.
+        """
+        return self._get_output("mvalue")
 
     def short_output(self) -> str:
         """Get short output from Nextech Gauge.
         
         Returns:
-            string: Current value from the device. Short format."""
-        try:
-            self.usb_serial.write(self.device_command["svalue"])
-            time.sleep(0.1)
-            s_output: str = ""
-            while self.usb_serial.in_waiting:
-                s_output += self.usb_serial.readline().decode("Ascii")
-
-            return s_output
-        except OSError:
-            self.print_error("os")
-            return None
+            str: Current value from the device. Short format.
+        """
+        return self._get_output("svalue")
 
     def long_output(self) -> str:
         """Get the long output from Nextech Gauge.
         
         Returns:
-            string: Current value from the device. Normal format."""
-        try:
-            self.usb_serial.write(self.device_command["lvalue"])
-            time.sleep(0.1)
-            s_output: str = ""
-            while self.usb_serial.in_waiting:
-                s_output += self.usb_serial.readline().decode("Ascii")
-
-            return s_output
-        except OSError:
-            self.print_error("os")
-            return None
+            str: Current value from the device. Long format.
+        """
+        return self._get_output("lvalue")
 
     def disconnect(self) -> bool:
         """Disconnect from the Nextech Gauge.
