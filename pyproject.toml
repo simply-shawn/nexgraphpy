@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nexgraphpy"
-version = "1.0.2"
+version = "1.0.3"
 description = 'Python library for connecting with Nextech force gauges over USB Serial'
 readme = "README.md"
 requires-python = ">=3.10"

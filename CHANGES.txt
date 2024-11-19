@@ -7,3 +7,5 @@ version 1.0.1
     - Better error handling.
 verion 1.0.2
     - Minor bug fixes, and code improvement
+version 1.0.3
+    - Fixed memory download bug.
