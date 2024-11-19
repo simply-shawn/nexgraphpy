@@ -5,7 +5,7 @@ Description: NexGraph Python library for Nextech force gauges.
 Author: Shawn Myratchapon
 Website: https://simplyshawn.co.th
 NexGraph: https://nexgraphapp.com
-Version: 1.0.2
+Version: 1.0.3
 """
 
 import time
@@ -253,8 +253,9 @@ class NexGraph:
             self.usb_serial.write(self.device_command["download"])
             time.sleep(0.1)
             mem_data: str = ""
-            while self.usb_serial.in_waiting:
+            while self.usb_serial.in_waiting > 0:
                 mem_data += self.usb_serial.readline().decode("Ascii")
+                time.sleep(0.1)
 
             return mem_data
         except OSError:
