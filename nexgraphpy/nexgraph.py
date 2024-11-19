@@ -254,9 +254,11 @@ class NexGraph:
             time.sleep(0.1)
             mem_data: str = ""
             while self.usb_serial.in_waiting > 0:
-                mem_data += self.usb_serial.readline().decode("Ascii")
-                time.sleep(0.1)
-
+                try:
+                    mem_data += self.usb_serial.read_all().decode("Ascii")
+                    time.sleep(0.1)
+                except UnicodeDecodeError:
+                    continue
             return mem_data
         except OSError:
             self.print_error("os")
