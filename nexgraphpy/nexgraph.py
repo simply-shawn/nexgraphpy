@@ -5,11 +5,12 @@ Description: NexGraph Python library for Nextech force gauges.
 Author: Shawn Myratchapon
 Website: https://simplyshawn.co.th
 NexGraph: https://nexgraphapp.com
-Version: 1.0.3
+Version: 2.0.0
 """
 
 import time
 import platform
+import warnings
 import serial
 import serial.tools.list_ports
 
@@ -38,7 +39,10 @@ class NexGraph:
         - `reset()`: Resets the value on the device.
         - `peak_tension()`: Returns the current peak tension value.
         - `peak_compression()`: Returns the current peak compression value.
-        - `download()`: Return the data stored on the device memory.
+        - `download(out_format="raw")`: Return the data stored on the device memory.
+        - `read(out_type="large")`: Reads the current value from the device in specified format.
+        - `disconnect()`: Disconnects from the Nextech Gauge.
+        ** Deprecated Methods: **
         - `mini_output()`: Returns the current value in mini format.
         - `short_output()`: Returns the current value in short format.
         - `long_output()`: Returns the current value in long format.
@@ -152,7 +156,7 @@ class NexGraph:
             return print_output
         except OSError:
             self.print_error("os")
-            return None
+            return ""
 
     def zero(self) -> bool:
         """Send the zero/tare command to the device.
@@ -225,7 +229,7 @@ class NexGraph:
             return peak_tension
         except OSError:
             self.print_error("os")
-            return None
+            return ""
 
     def peak_compression(self) -> str:
         """Get the current peak compression value from the device.
@@ -242,11 +246,15 @@ class NexGraph:
             return peak_compression
         except OSError:
             self.print_error("os")
-            return None
+            return ""
 
-    def download(self) -> str:
+    def download(self,out_format="raw") -> str:
         """Download stored data from device memory.
         
+        Args:
+            out_format (str): The format of the output data. Options are "raw" or "csv".
+            Default is "raw".
+
         Returns:
             string: Stored tension and compression values."""
         try:
@@ -259,13 +267,69 @@ class NexGraph:
                     time.sleep(0.1)
                 except UnicodeDecodeError:
                     continue
-            return mem_data
+            if out_format == "raw":
+                return mem_data
+            elif out_format == "csv":
+                # Convert raw data to CSV format
+                csv_data = "Tension,Compression\n"
+                for line in mem_data.splitlines():
+                    csv_data += f"{line},\n"
+                return csv_data
+            else:
+                print("Error: Unsupported format. Use 'raw' (default) or 'csv'.")
+                return ""
+        except (OSError, serial.SerialException) as e:
+            self.print_error(str(e))
+            return ""
+
+    def read(self, out_type="large") -> str:
+        """Read the current value from the device.
+
+        Args:
+            type (str): The type of output to read. Options are "small", "medium", or "large". 
+            Default is "large".
+
+        Returns:
+            string: Current value from the device."""
+        type_dict = {
+            "small": "mvalue",
+            "medium": "svalue",
+            "large": "lvalue"
+        }
+        if out_type in type_dict:
+            try:
+                self.usb_serial.write(self.device_command[type_dict[out_type]])
+                time.sleep(0.1)
+                s_output: str = ""
+                while self.usb_serial.in_waiting:
+                    s_output += self.usb_serial.readline().decode("Ascii")
+                return s_output
+            except (OSError, serial.SerialException) as e:
+                self.print_error(str(e))
+                return ""
+        else:
+            print("Error: Unsupported type. Use 'small', 'medium', or 'large', (Default: 'large')")
+            return ""
+
+    def disconnect(self) -> bool:
+        """Disconnect from the Nextech Gauge.
+        
+        Returns:
+            boolean: "True" if garcefully disconnected."""
+        status: bool = False
+        try:
+            self.usb_serial.close()
+            self.usb_serial = None
+            status = True
+            return status
         except OSError:
             self.print_error("os")
-            return None
+            return status
+
+# Deprecated methods for backward compatibility:
 
     def _get_output(self, command_key: str) -> str:
-        """Helper method to get output from Nextech Gauge.
+        """[Deprecated] Helper method to get output from Nextech Gauge.
         
         Args:
             command_key (str): The command key to send to the device.
@@ -285,40 +349,43 @@ class NexGraph:
             return ""
 
     def mini_output(self) -> str:
-        """Get mini output from Nextech Gauge.
+        """[Deprecated] Get mini output from Nextech Gauge.
         
         Returns:
             str: Current value from the device. Mini format.
         """
+        warnings.warn(
+            "The mini_output() method is deprecated and will be removed in future versions."
+            "Please use read('small') instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._get_output("mvalue")
 
     def short_output(self) -> str:
-        """Get short output from Nextech Gauge.
+        """[Deprecated] Get short output from Nextech Gauge.
         
         Returns:
             str: Current value from the device. Short format.
         """
+        warnings.warn(
+            "The short_output() method is deprecated and will be removed in future versions."
+            "Please use read('medium') instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._get_output("svalue")
 
     def long_output(self) -> str:
-        """Get the long output from Nextech Gauge.
+        """[Deprecated] Get the long output from Nextech Gauge.
         
         Returns:
             str: Current value from the device. Long format.
         """
+        warnings.warn(
+            "The long_output() method is deprecated and will be removed in future versions."
+            "Please use read('large') instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._get_output("lvalue")
-
-    def disconnect(self) -> bool:
-        """Disconnect from the Nextech Gauge.
-        
-        Returns:
-            boolean: "True" if garcefully disconnected."""
-        status: bool = False
-        try:
-            self.usb_serial.close()
-            self.usb_serial = None
-            status = True
-            return status
-        except OSError:
-            self.print_error("os")
-            return status
