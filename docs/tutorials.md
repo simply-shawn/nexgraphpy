@@ -12,16 +12,16 @@
 
 ### Create a new instance:
 
-`dft_force_gauge = NexGraph()`
+`DFT_DEVICE = NexGraph()`
 
 ### Find and connect to a Nextech force gauge over USB serial port:
 
 ```
-if dft_force_gauge.find():
-    if dft_force_gauge.connect():
-        print(dft_force_gauge.get_info())
-        dft_force_gauge.disconnect()
-        dft_force_gauge = None
+if DFT_DEVICE.find():
+    if DFT_DEVICE.connect():
+        print(DFT_DEVICE.get_info())
+        DFT_DEVICE.disconnect()
+        DFT_DEVICE = None
     else:
         print("Unable to connect")
         exit()
@@ -34,13 +34,13 @@ else:
 
 ```
 # Initialize with path
-dft_force_gauge = NexGraph("COM3")
+DFT_DEVICE = NexGraph("COM3")
 
 # Set the device path after initializing
-dft_force_gauge.device_path = "COM3"
+DFT_DEVICE.device_path = "COM3"
 
 # Connect to device after setting the path
-if dft_force_gauge.connect():
+if DFT_DEVICE.connect():
     ...
 ```
 
@@ -49,36 +49,50 @@ if dft_force_gauge.connect():
 #### Returns boolean value
 ```
 # Change device modes, peak and tracking
-dft_force_gauge.mode()
+DFT_DEVICE.mode()
 
 # Change the units on device
-dft_force_gauge.unit()
+DFT_DEVICE.unit()
 
 # Reset the current device value
-dft_force_gauge.reset()
+DFT_DEVICE.reset()
 
 # Zero (Tare) the value on device
-dft_force_gauge.zero()
+DFT_DEVICE.zero()
 ```
 
 #### Returns string value
+
+##### Download data from device memory
 ```
-# Download data from device memory
-dft_force_gauge.download()
+# Get data with no formatting
+DFT_DEVICE.download()
 
-# Print current value
-dft_force_gauge.print_value()
+# Get data in CSV format
+DFT_DEVICE.download("csv")
 
-# Print peak compression value
-dft_force_gauge.peak_compression()
+# Get data as bar chart
+DFT_DEVICE.download("chart")
 
-# Print peak tension value
-dft_force_gauge.peak_tension()
+# ** Chart is saved in the script directory as "memory-data-yyyymmdd-HHMMSS.png"
+```
 
-# Print different formatted outputs
-dft_force_gauge.long_output()
-dft_force_gauge.short_output()
-dft_force_gauge.mini_output()
+##### Read and print values from the device
+
+```
+# Current value
+DFT_DEVICE.print_value()
+
+# Peak compression value
+DFT_DEVICE.peak_compression()
+
+# Peak tension value
+DFT_DEVICE.peak_tension()
+
+# Different formatted values (Default: "large")
+DFT_DEVICE.long_output()
+DFT_DEVICE.short_output()
+DFT_DEVICE.mini_output()
 ```
 
 ### Output live data of 100 rows:
@@ -90,7 +104,7 @@ The output rate is roughly 10 data points per second.
 ```
 i = 0
 while True:
-    print(dft_force_gauge.long_output())
+    print(DFT_DEVICE.long_output())
     i += 1
     if i >= 100:
         break

@@ -10,4 +10,8 @@ verion 1.0.2
 version 1.0.3
     - Fixed memory download bug.
 version 2.0.0
-    - 
+    - Removed redundant code, organized and trimmed
+    - Better error handling and messages
+    - Fixed all code errors and warnings
+    - Updated methods and parameters names for clarity
+    - Added a bar chart, CSV output for memory downloads

@@ -1,7 +1,7 @@
 """
 NexgraphPy Setup Configuration
 """
-from distutils.core import setup
+from setuptools import setup
 setup(
     name = 'nexgraphpy',
     packages = ['nexgraphpy'],
@@ -13,6 +13,8 @@ setup(
     download_url = 'https://pypi.org/project/nexgraphpy/',
     install_requires=[
           'pyserial',
+          'matplotlib',
+          'numpy',
       ],
   classifiers=[  # Optional
     # How mature is this project? Common values are
