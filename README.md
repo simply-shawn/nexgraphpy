@@ -1,6 +1,6 @@
-<span align="center">
+<h1 align="center">
 <img src="https://python.nexgraphapp.com/assets/images/nexgraph-logo-wide.png">
-</span><br />
+</h1><br />
 
 # Nexgraph Python
 
@@ -124,5 +124,6 @@ while True:
 [Nexgraph Python Docs](https://python.nexgraphapp.com/)
 <https://python.nexgraphapp.com/>
 
-## NexGraph Application
-The latest version of the NexGraph application with a graphical user interface and more features such as live graphing, and pass/fail data highlighting is available now for Windows. Download it from <https://nexgraphapp.com>.
+## NexGraph Desktop Application
+The latest version of the NexGraph desktop application with features such as live graphing, and pass/fail data highlighting is available now for Windows.
+Get it from: <https://nexgraphapp.com>.
