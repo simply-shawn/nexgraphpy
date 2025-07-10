@@ -315,6 +315,7 @@ class NexGraph:
 
             # Create a bar chart
             x = np.arange(len(labels))
+            plt.figure(figsize=(10, 6))
             plt.bar(x, values, color='blue')
             plt.xlabel('Labels')
             plt.ylabel('Values')
