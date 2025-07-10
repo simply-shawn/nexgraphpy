@@ -1,10 +1,11 @@
-# nexgraphpy module
+<h1 align="center">
+<img src="https://python.nexgraphapp.com/assets/images/nexgraph-logo-wide.png">
+</h1><br />
+
 # Nexgraph Python
 
 ## Description:
-NexGraph Python is a Python library implementation of the NexGraph software which works with Nextech brand force gauges.  It provides an easy way to connect to Nextech force gauges using Python.  Despite it's name it does not create graphs as of yet, but does retrieve data from the device to be graphed.
-
-This library is under development and more features will be added later.
+NexGraph Python is a Python library implementation of the [NexGraph](https://nexgraphapp.com) software which works with Nextech brand DFT and DFS force gauges.  It connects to the force gauge over USB serial and enables you to operate your device using Python. Download data from your devices, execute commands, and read data.  Device Memory data can be output in CSV format or a bar chart.
 
 ## Requirements:
 Tested on Python versions 3.10+
@@ -21,16 +22,16 @@ Tested on Python versions 3.10+
 
 ### Create a new instance:
 
-`dft_force_gauge = NexGraph()`
+`DFT_DEVICE = NexGraph()`
 
 ### Find and connect to a Nextech force gauge over USB serial port:
 
 ```
-if dft_force_gauge.find():
-    if dft_force_gauge.connect():
-        print(dft_force_gauge.get_info())
-        dft_force_gauge.disconnect()
-        dft_force_gauge = None
+if DFT_DEVICE.find():
+    if DFT_DEVICE.connect():
+        print(DFT_DEVICE.get_info())
+        DFT_DEVICE.disconnect()
+        DFT_DEVICE = None
     else:
         print("Unable to connect")
         exit()
@@ -43,13 +44,13 @@ else:
 
 ```
 # Initialize with device the path
-dft_force_gauge = NexGraph("COM3")
+DFT_DEVICE = NexGraph("COM3")
 
 # Or set the device path after initializing
-dft_force_gauge.device_path = "COM3"
+DFT_DEVICE.device_path = "COM3"
 
 # Connect to device after setting the path
-if dft_force_gauge.connect():
+if DFT_DEVICE.connect():
     ...
 ```
 
@@ -58,36 +59,50 @@ if dft_force_gauge.connect():
 #### Returns boolean value
 ```
 # Change device modes, peak and tracking
-dft_force_gauge.mode()
+DFT_DEVICE.mode()
 
 # Change the units on device
-dft_force_gauge.unit()
+DFT_DEVICE.unit()
 
 # Reset the current device value
-dft_force_gauge.reset()
+DFT_DEVICE.reset()
 
 # Zero (Tare) the value on device
-dft_force_gauge.zero()
+DFT_DEVICE.zero()
 ```
 
 #### Returns string value
+
+##### Download data from device memory
 ```
-# Download data from device memory
-dft_force_gauge.download()
+# Get data with no formatting
+DFT_DEVICE.download()
 
-# Print current value
-dft_force_gauge.print_value()
+# Get data in CSV format
+DFT_DEVICE.download("csv")
 
-# Print peak compression value
-dft_force_gauge.peak_compression()
+# Get data as bar chart
+DFT_DEVICE.download("chart")
 
-# Print peak tension value
-dft_force_gauge.peak_tension()
+# ** Chart is saved in the script directory as "memory-data-yyyy-mm-dd-HH:MM:SS.png"
+```
 
-# Print different formatted outputs
-dft_force_gauge.long_output()
-dft_force_gauge.short_output()
-dft_force_gauge.mini_output()
+##### Read and print values from the device
+
+```
+# Print value
+DFT_DEVICE.print_value()
+
+# Peak compression value
+DFT_DEVICE.peak_compression()
+
+# Peak tension value
+DFT_DEVICE.peak_tension()
+
+# Different formatted values
+DFT_DEVICE.long_output()
+DFT_DEVICE.short_output()
+DFT_DEVICE.mini_output()
 ```
 
 ### Output live data of 100 rows:
@@ -99,7 +114,7 @@ The output rate is roughly 10 data points per second.
 ```
 i = 0
 while True:
-    print(dft_force_gauge.long_output())
+    print(DFT_DEVICE.long_output())
     i += 1
     if i >= 100:
         break
@@ -108,3 +123,7 @@ while True:
 
 [Nexgraph Python Docs](https://python.nexgraphapp.com/)
 <https://python.nexgraphapp.com/>
+
+## NexGraph Desktop Application
+The latest version of the NexGraph desktop application with features such as live graphing, and pass/fail data highlighting is available now for Windows.
+Get it from: <https://nexgraphapp.com>.

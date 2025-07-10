@@ -1,11 +1,11 @@
 """
 NexgraphPy Setup Configuration
 """
-from distutils.core import setup
+from setuptools import setup
 setup(
     name = 'nexgraphpy',
     packages = ['nexgraphpy'],
-    version = '1.0.3',
+    version = '2.0.0',
     license = 'GNU General Public License',
     description = 'Python library to connect to Nextech DFS or DFT force gauges.',
     author = 'Shawn Myratchapon',
@@ -13,6 +13,8 @@ setup(
     download_url = 'https://pypi.org/project/nexgraphpy/',
     install_requires=[
           'pyserial',
+          'matplotlib',
+          'numpy',
       ],
   classifiers=[  # Optional
     # How mature is this project? Common values are

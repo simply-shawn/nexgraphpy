@@ -5,17 +5,19 @@ Description: NexGraph Python library for Nextech force gauges.
 Author: Shawn Myratchapon
 Website: https://simplyshawn.co.th
 NexGraph: https://nexgraphapp.com
-Version: 1.0.3
+Version: 2.0.0
 """
 
+from datetime import datetime
 import time
 import platform
+import matplotlib.pyplot as plt
+import numpy as np
 import serial
 import serial.tools.list_ports
 
 class NexGraph:
-    """
-        NexGraph Python Library
+    """NexGraph Python Library
         - Finds and connects to Nextech devices over USB serial port
         - Send and receive data to and from the device
             - Download saved values
@@ -38,7 +40,10 @@ class NexGraph:
         - `reset()`: Resets the value on the device.
         - `peak_tension()`: Returns the current peak tension value.
         - `peak_compression()`: Returns the current peak compression value.
-        - `download()`: Return the data stored on the device memory.
+        - `download(out_format="raw")`: Return the data stored on the device memory.
+        - `read(out_type="large")`: Reads the current value from the device in specified format.
+        - `disconnect()`: Disconnects from the Nextech Gauge.
+        ** Deprecated Methods: **
         - `mini_output()`: Returns the current value in mini format.
         - `short_output()`: Returns the current value in short format.
         - `long_output()`: Returns the current value in long format.
@@ -48,28 +53,20 @@ class NexGraph:
         self.device_info: str = ""
         self.device_path: str = device_path if device_path else ""
         self.device_command: dict = {
-            "svalue": 'v'.encode(),
-            "print": 'x'.encode(),
-            "lvalue": 'l'.encode(),
-            "mvalue": 'L'.encode(),
-            "ptension": 'p'.encode(),
-            "pcompress": 'c'.encode(),
-            "info": '!'.encode(),
-            "download": 'd'.encode(),
-            "zero": 'z'.encode(),
-            "reset": 'r'.encode(),
-            "unit": 'u'.encode(),
-            "mode": 'm'.encode()
+            "!": '!'.encode(), # device info
+            "x": 'x'.encode(), # print
+            "p": 'p'.encode(), # peak tension
+            "c": 'c'.encode(), # peak compression
+            "l": 'l'.encode(), # long output
+            "v": 'v'.encode(), # short output
+            "L": 'L'.encode(), # mini output  
+            "d": 'd'.encode(), # download memory
+            "z": 'z'.encode(), # zero/tare
+            "r": 'r'.encode(), # reset values
+            "u": 'u'.encode(), # change unit
+            "m": 'm'.encode()  # change mode
         }
         self.usb_serial = None
-
-    def print_error(self, error_type):
-        """Prints the corresponding error message."""
-        match error_type:
-            case "os":
-                print(f"OS error connecting to device on {self.device_path}.")
-            case "perm":
-                print(f"Permission error connecting to device on {self.device_path}.")
 
     def find(self) -> bool:
         """Finds USB serial devices.
@@ -80,6 +77,8 @@ class NexGraph:
         device_found: bool = False
 
         for port in usb_ports:
+            if port.manufacturer is None:
+                continue
             if platform.system() == 'Windows':
                 if "COM" in port.device and "FTDI" in port.manufacturer:
                     device_found = True
@@ -108,7 +107,7 @@ class NexGraph:
                                             timeout=2,
                                             stopbits=serial.STOPBITS_ONE)
             try:
-                self.usb_serial.write(self.device_command['info'])
+                self.usb_serial.write(self.device_command['!'])
                 time.sleep(0.1)
 
                 if self.usb_serial.in_waiting:
@@ -120,11 +119,8 @@ class NexGraph:
                         return status
 
                 return status
-            except PermissionError:
-                self.print_error("perm")
-                return status
-            except OSError:
-                self.print_error("os")
+            except (OSError, serial.SerialException, PermissionError) as e:
+                print(str(e))
                 return status
         else:
             print("The device connection path is empty.")
@@ -137,132 +133,98 @@ class NexGraph:
             string: Model number, Current offset, Overload counter."""
         return self.device_info
 
-    def print_value(self) -> str:
-        """Send a print command to the device.
-        
-        Returns:
-            boolean: "True" if successful."""
-        try:
-            print_output: str = ""
-            self.usb_serial.write(self.device_command['print'])
-            time.sleep(0.1)
-            while self.usb_serial.in_waiting:
-                print_output += self.usb_serial.readline().decode("Ascii")
-
-            return print_output
-        except OSError:
-            self.print_error("os")
-            return None
-
     def zero(self) -> bool:
         """Send the zero/tare command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        status: bool = False
-        try:
-            self.usb_serial.write(self.device_command['zero'])
-            status = True
-            return status
-        except OSError:
-            self.print_error("os")
-            return status
+        return self._send_command('z')
 
     def mode(self) -> bool:
         """Send the change mode command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        status: bool = False
-        try:
-            self.usb_serial.write(self.device_command['mode'])
-            status = True
-            return status
-        except OSError:
-            self.print_error("os")
-            return status
+        return self._send_command('m')
 
     def unit(self) -> bool:
         """Send the change unit command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        status: bool = False
-        try:
-            self.usb_serial.write(self.device_command['unit'])
-            status = True
-            return status
-        except OSError:
-            self.print_error("os")
-            return status
+        return self._send_command('u')
 
     def reset(self) -> bool:
         """Send the reset values command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        status: bool = False
+        return self._send_command('r')
+
+    def _send_command(self, command: str) -> bool:
+        """Helper method to send a command to the Nextech Gauge.
+        
+        Args:
+            command (str): The command to send to the device.
+        
+        Returns:
+            bool: True if the command was sent successfully, False otherwise.
+        """
         try:
-            self.usb_serial.write(self.device_command['reset'])
-            status=True
-            return status
-        except OSError:
-            self.print_error("os")
-            return status
+            if not self.usb_serial:
+                print("Error: Device is not connected.")
+                return False
+
+            self.usb_serial.write(self.device_command[command])
+            return True
+        except (OSError, serial.SerialException) as e:
+            print(str(e))
+            return False
+
+    def print_value(self) -> str:
+        """Send a print command to the device.
+        
+        Returns:
+            boolean: "True" if successful."""
+        return self._get_output('x')
 
     def peak_tension(self) -> str:
         """Get the current peak tension value from the device.
         
         Returns:
             string: Current peak tension value."""
-        try:
-            peak_tension: str = ""
-            self.usb_serial.write(self.device_command['ptension'])
-            time.sleep(0.1)
-            while self.usb_serial.in_waiting:
-                peak_tension += self.usb_serial.readline().decode("Ascii")
-
-            return peak_tension
-        except OSError:
-            self.print_error("os")
-            return None
+        return self._get_output('p')
 
     def peak_compression(self) -> str:
         """Get the current peak compression value from the device.
         
         Returns:
             string: Current peak compression value."""
-        try:
-            peak_compression: str = ""
-            self.usb_serial.write(self.device_command['pcompress'])
-            time.sleep(0.1)
-            while self.usb_serial.in_waiting:
-                peak_compression += self.usb_serial.readline().decode("Ascii")
+        return self._get_output('c')
 
-            return peak_compression
-        except OSError:
-            self.print_error("os")
-            return None
-
-    def download(self) -> str:
-        """Download stored data from device memory.
+    def mini_output(self) -> str:
+        """Get mini output from Nextech Gauge.
         
         Returns:
-            string: Stored tension and compression values."""
-        try:
-            self.usb_serial.write(self.device_command["download"])
-            time.sleep(0.1)
-            mem_data: str = ""
-            while self.usb_serial.in_waiting > 0:
-                try:
-                    mem_data += self.usb_serial.read_all().decode("Ascii")
-                    time.sleep(0.1)
-                except UnicodeDecodeError:
-                    continue
-            return mem_data
-        except OSError:
-            self.print_error("os")
-            return None
+            str: Current value from the device. Mini format.
+        """
+        return self._get_output('L')
+
+    def short_output(self) -> str:
+        """Get short output from Nextech Gauge.
+        
+        Returns:
+            str: Current value from the device. Short format.
+        """
+        return self._get_output('v')
+
+    def long_output(self) -> str:
+        """Get the long output from Nextech Gauge.
+        
+        Returns:
+            str: Current value from the device. Long format.
+        """
+        return self._get_output('l')
 
     def _get_output(self, command_key: str) -> str:
         """Helper method to get output from Nextech Gauge.
@@ -274,6 +236,10 @@ class NexGraph:
             str: Current value from the device.
         """
         try:
+            if not self.usb_serial:
+                print("Error: Device is not connected.")
+                return ""
+
             self.usb_serial.write(self.device_command[command_key])
             time.sleep(0.1)
             s_output: str = ""
@@ -281,32 +247,88 @@ class NexGraph:
                 s_output += self.usb_serial.readline().decode("Ascii")
             return s_output
         except (OSError, serial.SerialException) as e:
-            self.print_error(str(e))
+            print(str(e))
             return ""
 
-    def mini_output(self) -> str:
-        """Get mini output from Nextech Gauge.
+    def download(self,out_format="raw") -> str:
+        """Download stored data from device memory.
         
-        Returns:
-            str: Current value from the device. Mini format.
-        """
-        return self._get_output("mvalue")
+        Args:
+            out_format (str): The format of the output data.
+            Options are 'raw' (default), 'csv', or 'chart'.
 
-    def short_output(self) -> str:
-        """Get short output from Nextech Gauge.
-        
         Returns:
-            str: Current value from the device. Short format.
-        """
-        return self._get_output("svalue")
+            string: Stored tension and compression values."""
+        try:
+            if not self.usb_serial:
+                print("Error: Device is not connected.")
+                return ""
 
-    def long_output(self) -> str:
-        """Get the long output from Nextech Gauge.
-        
-        Returns:
-            str: Current value from the device. Long format.
+            mem_data: str = ""
+            self.usb_serial.write(self.device_command['d'])
+            time.sleep(0.1)
+
+            while self.usb_serial.in_waiting > 0:
+                try:
+                    raw_data = self.usb_serial.read_all()
+                    if raw_data:
+                        mem_data += raw_data.decode("Ascii")
+                    time.sleep(0.1)
+                except UnicodeDecodeError:
+                    continue
+
+            if out_format == "raw":
+                return mem_data
+            if out_format == "csv":
+                csv_data = ""
+                for line in mem_data.splitlines():
+                    csv_data += line.replace(' ', ',') + "\n"
+                return csv_data
+            if out_format == "chart":
+                self._save_mem_chart(mem_data)
+                return ""
+
+            print("Error: Unsupported format. Use 'raw' (default), 'csv', or 'chart'.")
+            return ""
+        except (OSError, serial.SerialException) as e:
+            print(str(e))
+            return ""
+
+    def _save_mem_chart(self, chart_data:str):
         """
-        return self._get_output("lvalue")
+        Generate a bar chart and save the image to a file.
+
+        Args:
+            chart_data (str): Memory data to create a chart from.
+        """
+        try:
+            # Parse the chart data
+            lines = chart_data.strip().split('\n')
+            values = []
+            labels = []
+
+            for line in lines:
+                parts = line.split(' ')
+                if len(parts) > 3:
+                    labels.append(parts[0])
+                    values.append(float(parts[3]))
+
+            # Create a bar chart
+            x = np.arange(len(labels))
+            plt.figure(figsize=(10, 6))
+            plt.bar(x, values, color='blue')
+            plt.xlabel('Labels')
+            plt.ylabel('Values')
+            plt.title('Memory Data Chart')
+            plt.xticks(x, labels, rotation=45)
+
+            # Save the chart to a file
+            plt.tight_layout()
+            imagefile = f"memory-data-{datetime.now().strftime('%Y%m%d-%H%M%S')}.png"
+            plt.savefig(imagefile)
+            plt.close()
+        except (IndexError, PermissionError, OSError) as e:
+            print(str(e))
 
     def disconnect(self) -> bool:
         """Disconnect from the Nextech Gauge.
@@ -315,10 +337,14 @@ class NexGraph:
             boolean: "True" if garcefully disconnected."""
         status: bool = False
         try:
+            if not self.usb_serial:
+                print("Error: Device is not connected.")
+                return False
+
             self.usb_serial.close()
             self.usb_serial = None
             status = True
             return status
-        except OSError:
-            self.print_error("os")
+        except (OSError, serial.SerialException) as e:
+            print(str(e))
             return status
