@@ -254,8 +254,7 @@ class NexGraph:
         """Download stored data from device memory.
         
         Args:
-            out_format (str): The format of the output data.
-            Options are 'raw' (default), 'csv', or 'chart'.
+            out_format (str): The format of the output data. Values: ['raw', 'csv', 'chart'].
 
         Returns:
             string: Stored tension and compression values."""

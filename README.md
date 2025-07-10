@@ -84,7 +84,7 @@ DFT_DEVICE.download("csv")
 # Get data as bar chart
 DFT_DEVICE.download("chart")
 
-# ** Chart is saved in the script directory as "memory-data-yyyy-mm-dd-HH:MM:SS.png"
+# ** Chart is saved in the script directory as "memory-data-yyyymmdd-HHMMSS.png"
 ```
 
 ##### Read and print values from the device
