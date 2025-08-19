@@ -5,12 +5,13 @@ Description: NexGraph Python library for Nextech force gauges.
 Author: Shawn Myratchapon
 Website: https://simplyshawn.co.th
 NexGraph: https://nexgraphapp.com
-Version: 2.0.0
+Version: 2.1.0
 """
 
 from datetime import datetime
 import time
 import platform
+import threading
 import matplotlib.pyplot as plt
 import numpy as np
 import serial
@@ -67,6 +68,7 @@ class NexGraph:
             "m": 'm'.encode()  # change mode
         }
         self.usb_serial = None
+        self.force_mode: bool = True
 
     def find(self) -> bool:
         """Finds USB serial devices.
@@ -94,29 +96,49 @@ class NexGraph:
 
         return device_found
 
-    def connect(self) -> bool:
-        """Connect to Nextech force gauge.
+    def connect(self,force_mode=True,rate="fast") -> bool:
+        """Connect to a force gauge or torque tester.
+        
+        Args:
+            force_mode (bool): If True, connect in force mode; if False, connect in torque mode.
+            rate (str): The baud rate ("fast" or "slow").
 
         Returns: boolean: "True" if connection was successful.
         """
         status: bool = False
         if self.device_path:
+            if rate=="fast":
+                baud_rate = 38400
+            elif rate=="slow":
+                baud_rate = 9600
+            else:
+                print("Invalid rate specified. Use 'fast' or 'slow'.")
+                return status
+
+            if force_mode:
+                self.force_mode = True
+            else:
+                self.force_mode = False
+
             self.usb_serial = serial.Serial(port=self.device_path,
                                             bytesize=8,
-                                            baudrate=38400,
+                                            baudrate=baud_rate,
                                             timeout=2,
                                             stopbits=serial.STOPBITS_ONE)
             try:
-                self.usb_serial.write(self.device_command['!'])
-                time.sleep(0.1)
+                if self.force_mode:
+                    self.usb_serial.write(self.device_command['!'])
+                    time.sleep(0.1)
 
-                if self.usb_serial.in_waiting:
-                    self.device_info += self.usb_serial.readline().decode("Ascii")
-                    arr_info = self.device_info.split()
+                    if self.usb_serial.in_waiting:
+                        self.device_info += self.usb_serial.readline().decode("Ascii")
+                        arr_info = self.device_info.split()
 
-                    if arr_info and ("DFS" in arr_info[0] or "DFT" in arr_info[0]):
-                        status = True
-                        return status
+                        if arr_info and len(arr_info) > 2:
+                            status = True
+
+                else:
+                    status = True
 
                 return status
             except (OSError, serial.SerialException, PermissionError) as e:
@@ -127,39 +149,54 @@ class NexGraph:
             return status
 
     def get_info(self) -> str:
-        """Gets the device details.
+        """Gets the device details.        
 
         Returns:
             string: Model number, Current offset, Overload counter."""
-        return self.device_info
+        if self.force_mode:
+            return self.device_info
+
+        return ""
 
     def zero(self) -> bool:
         """Send the zero/tare command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        return self._send_command('z')
+        if self.force_mode:
+            return self._send_command('z')
+
+        return False
 
     def mode(self) -> bool:
         """Send the change mode command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        return self._send_command('m')
+        if self.force_mode:
+            return self._send_command('m')
+
+        return False
 
     def unit(self) -> bool:
         """Send the change unit command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        return self._send_command('u')
+        if self.force_mode:
+            return self._send_command('u')
+
+        return False
 
     def reset(self) -> bool:
         """Send the reset values command to the device.
         
         Returns:
             boolean: "True" if successful."""
-        return self._send_command('r')
+        if self.force_mode:
+            return self._send_command('r')
+
+        return False
 
     def _send_command(self, command: str) -> bool:
         """Helper method to send a command to the Nextech Gauge.
@@ -186,21 +223,30 @@ class NexGraph:
         
         Returns:
             boolean: "True" if successful."""
-        return self._get_output('x')
+        if self.force_mode:
+            return self._get_output('x')
+
+        return ""
 
     def peak_tension(self) -> str:
         """Get the current peak tension value from the device.
         
         Returns:
             string: Current peak tension value."""
-        return self._get_output('p')
+        if self.force_mode:
+            return self._get_output('p')
+
+        return ""
 
     def peak_compression(self) -> str:
         """Get the current peak compression value from the device.
         
         Returns:
             string: Current peak compression value."""
-        return self._get_output('c')
+        if self.force_mode:
+            return self._get_output('c')
+
+        return ""
 
     def mini_output(self) -> str:
         """Get mini output from Nextech Gauge.
@@ -208,7 +254,10 @@ class NexGraph:
         Returns:
             str: Current value from the device. Mini format.
         """
-        return self._get_output('L')
+        if self.force_mode:
+            return self._get_output('L')
+
+        return ""
 
     def short_output(self) -> str:
         """Get short output from Nextech Gauge.
@@ -216,7 +265,10 @@ class NexGraph:
         Returns:
             str: Current value from the device. Short format.
         """
-        return self._get_output('v')
+        if self.force_mode:
+            return self._get_output('v')
+
+        return ""
 
     def long_output(self) -> str:
         """Get the long output from Nextech Gauge.
@@ -224,7 +276,10 @@ class NexGraph:
         Returns:
             str: Current value from the device. Long format.
         """
-        return self._get_output('l')
+        if self.force_mode:
+            return self._get_output('l')
+
+        return ""
 
     def _get_output(self, command_key: str) -> str:
         """Helper method to get output from Nextech Gauge.
@@ -259,6 +314,13 @@ class NexGraph:
         Returns:
             string: Stored tension and compression values."""
         try:
+            if out_format not in ["raw", "csv", "chart"]:
+                print("Error: Unsupported format. Use 'raw' (default), 'csv', or 'chart'.")
+                return ""
+
+            if not self.force_mode:
+                return ""
+
             if not self.usb_serial:
                 print("Error: Device is not connected.")
                 return ""
@@ -276,19 +338,17 @@ class NexGraph:
                 except UnicodeDecodeError:
                     continue
 
-            if out_format == "raw":
-                return mem_data
             if out_format == "csv":
                 csv_data = ""
                 for line in mem_data.splitlines():
                     csv_data += line.replace(' ', ',') + "\n"
-                return csv_data
+                mem_data = csv_data
+
             if out_format == "chart":
                 self._save_mem_chart(mem_data)
-                return ""
+                mem_data = ""
 
-            print("Error: Unsupported format. Use 'raw' (default), 'csv', or 'chart'.")
-            return ""
+            return mem_data
         except (OSError, serial.SerialException) as e:
             print(str(e))
             return ""
@@ -328,6 +388,60 @@ class NexGraph:
             plt.close()
         except (IndexError, PermissionError, OSError) as e:
             print(str(e))
+
+    def read_torque_data(self, out_format="raw") -> str:
+        """Read torque data from the device.
+
+        Args:
+            out_format (str): The format of the output data. Values: ['raw', 'csv', 'chart'].
+
+        Returns:
+            string: Torque values."""
+        try:
+            if out_format not in ["raw", "csv", "chart"]:
+                print("Error: Unsupported format. Use 'raw' (default), 'csv', or 'chart'.")
+                return ""
+
+            if self.force_mode:
+                return ""
+
+            if not self.usb_serial:
+                print("Error: Device is not connected.")
+                return ""
+
+            stop_event = threading.Event()
+            torque_data = []
+
+            def serial_reader():
+                while not stop_event.is_set():
+                    if self.usb_serial and self.usb_serial.in_waiting > 0:
+                        line = self.usb_serial.read_all()
+                        if line:
+                            torque_data.append(line.decode("Ascii").strip())
+                    else:
+                        time.sleep(0.1)
+
+            reader_thread = threading.Thread(target=serial_reader)
+            reader_thread.start()
+
+            input("Press Enter to stop reading torque data...\n")
+            stop_event.set()
+            reader_thread.join()
+
+            data_str = "\n".join(torque_data)
+
+            if out_format == "csv":
+                data_str = "\n".join(line.replace(' ', ',') for line in torque_data)
+
+            if out_format == "chart":
+                self._save_mem_chart(data_str)
+                data_str = ""
+
+            return data_str
+
+        except (OSError, serial.SerialException) as e:
+            print(str(e))
+            return ""
 
     def disconnect(self) -> bool:
         """Disconnect from the Nextech Gauge.

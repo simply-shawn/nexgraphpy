@@ -22,3 +22,7 @@
     - Fixed all code errors and warnings
     - Updated methods and parameters names for clarity
     - Added a bar chart, CSV output for memory downloads
+
+### version 2.1.0
+    - Add support for torque testers
+    - Add support for devices using lower baud rate
