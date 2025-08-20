@@ -25,4 +25,4 @@
 
 ### version 2.1.0
     - Add support for torque testers
-    - Add support for devices using lower baud rate
+    - Add support for devices using slower baud rate

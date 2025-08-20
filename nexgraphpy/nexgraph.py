@@ -11,6 +11,7 @@ Version: 2.1.0
 from datetime import datetime
 import time
 import platform
+import re
 import threading
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,33 +22,38 @@ class NexGraph:
     """NexGraph Python Library
         - Finds and connects to Nextech devices over USB serial port
         - Send and receive data to and from the device
-            - Download saved values
-            - Get device information
-            - Query different force value formats
-            - Send commands Print, Reset, Zero, Unit, and Mode
-        
+            - Force Mode:
+                - Download saved values
+                - Get device information
+                - Query different force value formats
+                - Send commands Print, Reset, Zero, Unit, and Mode
+            - Torque Mode:
+                - Read data from the device
+
         Attributes:
         - `device_info`: string: Device model, and details.
         - `device_path`: string: Path or port device is connected to.
-        
+        - `device_command`: dict: Commands to send to the device.
+        - `usb_serial`: serial.Serial: Serial connection to the device.
+        - `force_mode`: bool: Current force mode (True for tension, False for compression).
+
         Methods:
         - `find()`: Searches for connected USB serial devices.
         - `connect()`: Tries to connect to the device on device_path.
-        - `get_info()`: Returns the device information.
-        - `print_value()`: Returns the current value or max value from the device.
+        - `get_info()`: Returns the device information.        
         - `zero()`: Zeroes the current value on the device.
         - `mode()`: Changes the mode (track and peak) on the device.
         - `unit()`: Changes the unit of measurement on the device.
         - `reset()`: Resets the value on the device.
+        - `print_value()`: Returns the current value or max value from the device.
         - `peak_tension()`: Returns the current peak tension value.
-        - `peak_compression()`: Returns the current peak compression value.
-        - `download(out_format="raw")`: Return the data stored on the device memory.
-        - `read(out_type="large")`: Reads the current value from the device in specified format.
-        - `disconnect()`: Disconnects from the Nextech Gauge.
-        ** Deprecated Methods: **
+        - `peak_compression()`: Returns the current peak compression value.        
         - `mini_output()`: Returns the current value in mini format.
         - `short_output()`: Returns the current value in short format.
         - `long_output()`: Returns the current value in long format.
+        - `download(out_format="raw")`: Return the data stored on the device memory.
+        - `read_torque_data(out_format="raw")`: Reads torque data from the device.
+        - `disconnect()`: Disconnects from the Nextech Gauge.
     """
 
     def __init__(self,device_path = ""):
@@ -341,7 +347,7 @@ class NexGraph:
             if out_format == "csv":
                 csv_data = ""
                 for line in mem_data.splitlines():
-                    csv_data += line.replace(' ', ',') + "\n"
+                    csv_data += line.strip().replace(' ', ',') + "\n"
                 mem_data = csv_data
 
             if out_format == "chart":
@@ -428,20 +434,76 @@ class NexGraph:
             stop_event.set()
             reader_thread.join()
 
-            data_str = "\n".join(torque_data)
+            tor_data = ""
+            tmp_data = ""
+            dts_pattern = re.compile(r"^\s*(\w+)\s*([+-])\s*([\d\.]+)\s*([^\d\s].+)$")
+            dtt_pattern = re.compile(r"^\s*\(?\s*([\w ]+)\s*,\s*([+-])\s*,\s*([\d\.]+)\s*,\s*([^\d,]+)\s*,*,\s*([\d\/ :]+)\s*,?\s*([^\)]*)\)?$")
+            for line in torque_data:
+                if dts_pattern.match(tmp_data) or dtt_pattern.match(tmp_data):
+                    tor_data += tmp_data + "\n"
+                    tmp_data = ""
+                if dts_pattern.match(line) or dtt_pattern.match(line):
+                    tor_data += line + "\n"
+                else:
+                    tmp_data += line
 
             if out_format == "csv":
-                data_str = "\n".join(line.replace(' ', ',') for line in torque_data)
+                csv_data = ""
+                for line in tor_data.splitlines():
+                    if '(' in line:
+                        csv_data += line.strip().replace('(', '').replace(')', '') + "\n"
+                    else:
+                        csv_data += line.replace(' ', ',') + "\n"
+
+                tor_data = csv_data
 
             if out_format == "chart":
-                self._save_mem_chart(data_str)
-                data_str = ""
+                self._save_tor_chart(tor_data)
+                tor_data = ""
 
-            return data_str
+            return tor_data
 
         except (OSError, serial.SerialException) as e:
             print(str(e))
             return ""
+
+    def _save_tor_chart(self, chart_data:str):
+        """
+        Generate a bar chart and save the image to a file.
+
+        Args:
+            chart_data (str): Memory data to create a chart from.
+        """
+        try:
+            # Parse the chart data
+            lines = chart_data.strip().split('\n')
+            values = []
+            labels = []
+
+            counter = 0
+            for line in lines:
+                parts = line.split(' ')
+                if len(parts) > 3:
+                    labels.append(counter)
+                    values.append(float(parts[3]))
+                    counter += 1
+
+            # Create a bar chart
+            x = np.arange(len(labels))
+            plt.figure(figsize=(10, 6))
+            plt.bar(x, values, color='blue')
+            plt.xlabel('Labels')
+            plt.ylabel('Values')
+            plt.title('Torque Data Chart')
+            plt.xticks(x, labels, rotation=45)
+
+            # Save the chart to a file
+            plt.tight_layout()
+            imagefile = f"torque-data-{datetime.now().strftime('%Y%m%d-%H%M%S')}.png"
+            plt.savefig(imagefile)
+            plt.close()
+        except (IndexError, PermissionError, OSError) as e:
+            print(str(e))
 
     def disconnect(self) -> bool:
         """Disconnect from the Nextech Gauge.

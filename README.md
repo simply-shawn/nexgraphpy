@@ -26,6 +26,8 @@ Tested on Python versions 3.10+
 
 ### Find and connect to a Nextech force gauge over USB serial port:
 
+#### Nextech Force Gauges:
+
 ```
 if DFT_DEVICE.find():
     if DFT_DEVICE.connect():
@@ -38,6 +40,13 @@ if DFT_DEVICE.find():
 else:
     print("No device found.")
     exit()
+```
+
+#### Other force gauges using slower baud rate:
+```
+if OEM_DEVICE.find():
+    if OEM_DEVICE.connect("slow"):
+    ...
 ```
 
 ### Connect to a Nextech force gauge directly:
@@ -118,6 +127,17 @@ while True:
     i += 1
     if i >= 100:
         break
+```
+
+### Find and connect to a Nextech torque tester over USB serial port:
+```
+if DTT_DEVICE.connect(False):
+    print(DTT_DEVICE.read_torque_data())
+    print(DTT_DEVICE.read_torque_data("csv")) # Output CSV
+    print(DTT_DEVICE.read_torque_data("chart")) # Output Chart
+    ...
+
+# ** Chart is saved in the script directory as "torque-data-yyyymmdd-HHMMSS.png"
 ```
 ## Documentation
 
