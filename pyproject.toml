@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nexgraphpy"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [ "pyserial", "matplotlib", "numpy" ]
 requires-python = ">=3.10"
 authors = [{ name = "Shawn Myratchapon", email = "info@nexgraphapp.com" }]

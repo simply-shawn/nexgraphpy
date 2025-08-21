@@ -16,6 +16,8 @@
 
 ### Find and connect to a Nextech force gauge over USB serial port:
 
+#### Nextech Force Gauges:
+
 ```
 if DFT_DEVICE.find():
     if DFT_DEVICE.connect():
@@ -30,13 +32,20 @@ else:
     exit()
 ```
 
+#### Other force gauges using lower baud rate:
+```
+if FL_DEVICE.find():
+    if FL_DEVICE.connect("low"):
+    ...
+```
+
 ### Connect to a Nextech force gauge directly:
 
 ```
-# Initialize with path
+# Initialize with device the path
 DFT_DEVICE = NexGraph("COM3")
 
-# Set the device path after initializing
+# Or set the device path after initializing
 DFT_DEVICE.device_path = "COM3"
 
 # Connect to device after setting the path
@@ -71,8 +80,8 @@ DFT_DEVICE.download()
 # Get data in CSV format
 DFT_DEVICE.download("csv")
 
-# Get data as bar chart
-DFT_DEVICE.download("chart")
+# Get data as CSV and generate a chart
+DFT_DEVICE.download("csv", True)
 
 # ** Chart is saved in the script directory as "memory-data-yyyymmdd-HHMMSS.png"
 ```
@@ -80,7 +89,7 @@ DFT_DEVICE.download("chart")
 ##### Read and print values from the device
 
 ```
-# Current value
+# Print value
 DFT_DEVICE.print_value()
 
 # Peak compression value
@@ -89,7 +98,7 @@ DFT_DEVICE.peak_compression()
 # Peak tension value
 DFT_DEVICE.peak_tension()
 
-# Different formatted values (Default: "large")
+# Different formatted values
 DFT_DEVICE.long_output()
 DFT_DEVICE.short_output()
 DFT_DEVICE.mini_output()
@@ -108,4 +117,18 @@ while True:
     i += 1
     if i >= 100:
         break
+```
+
+### Find and connect to a Nextech torque tester over USB serial port:
+```
+if DTT_DEVICE.connect(False):
+    # Output unformatted data:
+    print(DTT_DEVICE.read_torque_data())
+     # Output data as CSV format
+    print(DTT_DEVICE.read_torque_data("csv"))
+     # Output unformatted data and generate a chart
+    print(DTT_DEVICE.read_torque_data("raw",True))
+    ...
+
+# ** Chart is saved in the script directory as "torque-data-yyyymmdd-HHMMSS.png"
 ```

@@ -5,7 +5,18 @@
 # Nexgraph Python
 
 ## Description:
-NexGraph Python is a Python library implementation of the [NexGraph](https://nexgraphapp.com) software which works with Nextech brand DFT and DFS force gauges.  It connects to the force gauge over USB serial and enables you to operate your device using Python. Download data from your devices, execute commands, and read data.  Device Memory data can be output in CSV format or a bar chart.
+NexGraph Python is a Python library implementation of the [NexGraph](https://nexgraphapp.com) software which works with force gauges and torque testers manufactured by Nextech.  It connects to a device over USB serial and enables you to operate the device using Python. Download data from your devices, execute commands, and read data.   Device data can be output in raw and CSV format.  A bar chart can also be generated.
+Compatible Devices:
+- Nextech: 
+    - DFS Series
+    - DFT
+    - CTS
+    - DTS
+    - DTT
+- Sauter:
+    - FL Series
+    - DA
+    - DB
 
 ## Requirements:
 Tested on Python versions 3.10+
@@ -26,6 +37,8 @@ Tested on Python versions 3.10+
 
 ### Find and connect to a Nextech force gauge over USB serial port:
 
+#### Nextech Force Gauges:
+
 ```
 if DFT_DEVICE.find():
     if DFT_DEVICE.connect():
@@ -38,6 +51,13 @@ if DFT_DEVICE.find():
 else:
     print("No device found.")
     exit()
+```
+
+#### Other force gauges using lower baud rate:
+```
+if FL_DEVICE.find():
+    if FL_DEVICE.connect("low"):
+    ...
 ```
 
 ### Connect to a Nextech force gauge directly:
@@ -81,8 +101,8 @@ DFT_DEVICE.download()
 # Get data in CSV format
 DFT_DEVICE.download("csv")
 
-# Get data as bar chart
-DFT_DEVICE.download("chart")
+# Get data as CSV and generate a chart
+DFT_DEVICE.download("csv", True)
 
 # ** Chart is saved in the script directory as "memory-data-yyyymmdd-HHMMSS.png"
 ```
@@ -118,6 +138,20 @@ while True:
     i += 1
     if i >= 100:
         break
+```
+
+### Find and connect to a Nextech torque tester over USB serial port:
+```
+if DTT_DEVICE.connect(False):
+    # Output unformatted data:
+    print(DTT_DEVICE.read_torque_data())
+     # Output data as CSV format
+    print(DTT_DEVICE.read_torque_data("csv"))
+     # Output unformatted data and generate a chart
+    print(DTT_DEVICE.read_torque_data("raw",True))
+    ...
+
+# ** Chart is saved in the script directory as "torque-data-yyyymmdd-HHMMSS.png"
 ```
 ## Documentation
 
