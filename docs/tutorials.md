@@ -32,10 +32,10 @@ else:
     exit()
 ```
 
-#### Other force gauges using slower baud rate:
+#### Other force gauges using lower baud rate:
 ```
-if OEM_DEVICE.find():
-    if OEM_DEVICE.connect("slow"):
+if FL_DEVICE.find():
+    if FL_DEVICE.connect("low"):
     ...
 ```
 
@@ -80,8 +80,8 @@ DFT_DEVICE.download()
 # Get data in CSV format
 DFT_DEVICE.download("csv")
 
-# Get data as bar chart
-DFT_DEVICE.download("chart")
+# Get data as CSV and generate a chart
+DFT_DEVICE.download("csv", True)
 
 # ** Chart is saved in the script directory as "memory-data-yyyymmdd-HHMMSS.png"
 ```
@@ -122,9 +122,12 @@ while True:
 ### Find and connect to a Nextech torque tester over USB serial port:
 ```
 if DTT_DEVICE.connect(False):
+    # Output unformatted data:
     print(DTT_DEVICE.read_torque_data())
-    print(DTT_DEVICE.read_torque_data("csv")) # Output CSV
-    print(DTT_DEVICE.read_torque_data("chart")) # Output Chart
+     # Output data as CSV format
+    print(DTT_DEVICE.read_torque_data("csv"))
+     # Output unformatted data and generate a chart
+    print(DTT_DEVICE.read_torque_data("raw",True))
     ...
 
 # ** Chart is saved in the script directory as "torque-data-yyyymmdd-HHMMSS.png"

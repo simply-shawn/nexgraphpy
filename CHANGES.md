@@ -25,4 +25,8 @@
 
 ### version 2.1.0
     - Add support for torque testers
-    - Add support for devices using slower baud rate
+    - Add support for devices using a lower baud rate
+    - Download method updated:
+        - "chart" value for out_format arg removed
+        - download(out_format="raw|csv", gen_chart=False|True)
+        - Default values ("raw", False)

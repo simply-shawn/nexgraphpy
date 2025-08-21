@@ -18,6 +18,7 @@ import numpy as np
 import serial
 import serial.tools.list_ports
 
+
 class NexGraph:
     """NexGraph Python Library
         - Finds and connects to Nextech devices over USB serial port
@@ -56,21 +57,21 @@ class NexGraph:
         - `disconnect()`: Disconnects from the Nextech Gauge.
     """
 
-    def __init__(self,device_path = ""):
+    def __init__(self, device_path=""):
         self.device_info: str = ""
         self.device_path: str = device_path if device_path else ""
         self.device_command: dict = {
-            "!": '!'.encode(), # device info
-            "x": 'x'.encode(), # print
-            "p": 'p'.encode(), # peak tension
-            "c": 'c'.encode(), # peak compression
-            "l": 'l'.encode(), # long output
-            "v": 'v'.encode(), # short output
-            "L": 'L'.encode(), # mini output  
-            "d": 'd'.encode(), # download memory
-            "z": 'z'.encode(), # zero/tare
-            "r": 'r'.encode(), # reset values
-            "u": 'u'.encode(), # change unit
+            "!": '!'.encode(),  # device info
+            "x": 'x'.encode(),  # print
+            "p": 'p'.encode(),  # peak tension
+            "c": 'c'.encode(),  # peak compression
+            "l": 'l'.encode(),  # long output
+            "v": 'v'.encode(),  # short output
+            "L": 'L'.encode(),  # mini output
+            "d": 'd'.encode(),  # download memory
+            "z": 'z'.encode(),  # zero/tare
+            "r": 'r'.encode(),  # reset values
+            "u": 'u'.encode(),  # change unit
             "m": 'm'.encode()  # change mode
         }
         self.usb_serial = None
@@ -78,7 +79,7 @@ class NexGraph:
 
     def find(self) -> bool:
         """Finds USB serial devices.
-        
+
         Returns: boolean: "True" if a device was found.
         """
         usb_ports = serial.tools.list_ports.comports(include_links=True)
@@ -102,23 +103,23 @@ class NexGraph:
 
         return device_found
 
-    def connect(self,force_mode=True,rate="fast") -> bool:
+    def connect(self, force_mode=True, rate="high") -> bool:
         """Connect to a force gauge or torque tester.
-        
+
         Args:
             force_mode (bool): If True, connect in force mode; if False, connect in torque mode.
-            rate (str): The baud rate ("fast" or "slow").
+            rate (str): The baud rate ("high" or "low").
 
         Returns: boolean: "True" if connection was successful.
         """
         status: bool = False
         if self.device_path:
-            if rate=="fast":
+            if rate == "high":
                 baud_rate = 38400
-            elif rate=="slow":
+            elif rate == "low":
                 baud_rate = 9600
             else:
-                print("Invalid rate specified. Use 'fast' or 'slow'.")
+                print("Invalid rate specified. Use 'high' or 'low'.")
                 return status
 
             if force_mode:
@@ -166,7 +167,7 @@ class NexGraph:
 
     def zero(self) -> bool:
         """Send the zero/tare command to the device.
-        
+
         Returns:
             boolean: "True" if successful."""
         if self.force_mode:
@@ -176,7 +177,7 @@ class NexGraph:
 
     def mode(self) -> bool:
         """Send the change mode command to the device.
-        
+
         Returns:
             boolean: "True" if successful."""
         if self.force_mode:
@@ -186,7 +187,7 @@ class NexGraph:
 
     def unit(self) -> bool:
         """Send the change unit command to the device.
-        
+
         Returns:
             boolean: "True" if successful."""
         if self.force_mode:
@@ -196,7 +197,7 @@ class NexGraph:
 
     def reset(self) -> bool:
         """Send the reset values command to the device.
-        
+
         Returns:
             boolean: "True" if successful."""
         if self.force_mode:
@@ -206,10 +207,10 @@ class NexGraph:
 
     def _send_command(self, command: str) -> bool:
         """Helper method to send a command to the Nextech Gauge.
-        
+
         Args:
             command (str): The command to send to the device.
-        
+
         Returns:
             bool: True if the command was sent successfully, False otherwise.
         """
@@ -226,7 +227,7 @@ class NexGraph:
 
     def print_value(self) -> str:
         """Send a print command to the device.
-        
+
         Returns:
             boolean: "True" if successful."""
         if self.force_mode:
@@ -236,7 +237,7 @@ class NexGraph:
 
     def peak_tension(self) -> str:
         """Get the current peak tension value from the device.
-        
+
         Returns:
             string: Current peak tension value."""
         if self.force_mode:
@@ -246,7 +247,7 @@ class NexGraph:
 
     def peak_compression(self) -> str:
         """Get the current peak compression value from the device.
-        
+
         Returns:
             string: Current peak compression value."""
         if self.force_mode:
@@ -256,7 +257,7 @@ class NexGraph:
 
     def mini_output(self) -> str:
         """Get mini output from Nextech Gauge.
-        
+
         Returns:
             str: Current value from the device. Mini format.
         """
@@ -267,7 +268,7 @@ class NexGraph:
 
     def short_output(self) -> str:
         """Get short output from Nextech Gauge.
-        
+
         Returns:
             str: Current value from the device. Short format.
         """
@@ -278,7 +279,7 @@ class NexGraph:
 
     def long_output(self) -> str:
         """Get the long output from Nextech Gauge.
-        
+
         Returns:
             str: Current value from the device. Long format.
         """
@@ -289,10 +290,10 @@ class NexGraph:
 
     def _get_output(self, command_key: str) -> str:
         """Helper method to get output from Nextech Gauge.
-        
+
         Args:
             command_key (str): The command key to send to the device.
-        
+
         Returns:
             str: Current value from the device.
         """
@@ -311,17 +312,19 @@ class NexGraph:
             print(str(e))
             return ""
 
-    def download(self,out_format="raw") -> str:
+    def download(self, out_format="raw", gen_chart=False) -> str:
         """Download stored data from device memory.
-        
+
         Args:
-            out_format (str): The format of the output data. Values: ['raw', 'csv', 'chart'].
+            out_format (str): The format of the output data. Values: ['raw', 'csv'].
+            gen_chart (bool): Whether to generate a chart from the data.
 
         Returns:
             string: Stored tension and compression values."""
         try:
-            if out_format not in ["raw", "csv", "chart"]:
-                print("Error: Unsupported format. Use 'raw' (default), 'csv', or 'chart'.")
+            if out_format not in ["raw", "csv"]:
+                print(
+                    "Error: Unsupported format. Use 'raw' (default) or 'csv'")
                 return ""
 
             if not self.force_mode:
@@ -344,22 +347,21 @@ class NexGraph:
                 except UnicodeDecodeError:
                     continue
 
+            if gen_chart:
+                self._save_mem_chart(mem_data)
+
             if out_format == "csv":
                 csv_data = ""
                 for line in mem_data.splitlines():
                     csv_data += line.strip().replace(' ', ',') + "\n"
                 mem_data = csv_data
 
-            if out_format == "chart":
-                self._save_mem_chart(mem_data)
-                mem_data = ""
-
             return mem_data
         except (OSError, serial.SerialException) as e:
             print(str(e))
             return ""
 
-    def _save_mem_chart(self, chart_data:str):
+    def _save_mem_chart(self, chart_data: str):
         """
         Generate a bar chart and save the image to a file.
 
@@ -375,8 +377,8 @@ class NexGraph:
             for line in lines:
                 parts = line.split(' ')
                 if len(parts) > 3:
-                    labels.append(parts[0])
-                    values.append(float(parts[3]))
+                    labels.append(parts[0].strip())
+                    values.append(float(parts[3].strip()))
 
             # Create a bar chart
             x = np.arange(len(labels))
@@ -395,17 +397,19 @@ class NexGraph:
         except (IndexError, PermissionError, OSError) as e:
             print(str(e))
 
-    def read_torque_data(self, out_format="raw") -> str:
+    def read_torque_data(self, out_format="raw", gen_chart=False) -> str:
         """Read torque data from the device.
 
         Args:
-            out_format (str): The format of the output data. Values: ['raw', 'csv', 'chart'].
+            out_format (str): The format of the output data. Values: ['raw', 'csv'].
+            gen_chart (bool): Whether to generate a chart from the data.
 
         Returns:
             string: Torque values."""
         try:
-            if out_format not in ["raw", "csv", "chart"]:
-                print("Error: Unsupported format. Use 'raw' (default), 'csv', or 'chart'.")
+            if out_format not in ["raw", "csv"]:
+                print(
+                    "Error: Unsupported format. Use 'raw' (default) or 'csv'.")
                 return ""
 
             if self.force_mode:
@@ -436,8 +440,10 @@ class NexGraph:
 
             tor_data = ""
             tmp_data = ""
-            dts_pattern = re.compile(r"^\s*(\w+)\s*([+-])\s*([\d\.]+)\s*([^\d\s].+)$")
-            dtt_pattern = re.compile(r"^\s*\(?\s*([\w ]+)\s*,\s*([+-])\s*,\s*([\d\.]+)\s*,\s*([^\d,]+)\s*,*,\s*([\d\/ :]+)\s*,?\s*([^\)]*)\)?$")
+            dts_pattern = re.compile(
+                r"^\s*(\w+)\s*([+-])\s*([\d\.]+)\s*([^\d\s].+)$")
+            dtt_pattern = re.compile(
+                r"^\s*\(?\s*([\w ]+)\s*,\s*([+-])\s*,\s*([\d\.]+)\s*,\s*([^\d,]+)\s*,*,\s*([\d\/ :]+)\s*,?\s*([^\)]*)\)?$")
             for line in torque_data:
                 if dts_pattern.match(tmp_data) or dtt_pattern.match(tmp_data):
                     tor_data += tmp_data + "\n"
@@ -446,6 +452,9 @@ class NexGraph:
                     tor_data += line + "\n"
                 else:
                     tmp_data += line
+
+            if gen_chart:
+                self._save_tor_chart(tor_data)
 
             if out_format == "csv":
                 csv_data = ""
@@ -457,17 +466,13 @@ class NexGraph:
 
                 tor_data = csv_data
 
-            if out_format == "chart":
-                self._save_tor_chart(tor_data)
-                tor_data = ""
-
             return tor_data
 
         except (OSError, serial.SerialException) as e:
             print(str(e))
             return ""
 
-    def _save_tor_chart(self, chart_data:str):
+    def _save_tor_chart(self, chart_data: str):
         """
         Generate a bar chart and save the image to a file.
 
@@ -477,15 +482,24 @@ class NexGraph:
         try:
             # Parse the chart data
             lines = chart_data.strip().split('\n')
+            if len(lines) == 0:
+                return
+
             values = []
             labels = []
 
             counter = 0
+            v_idx = 3
+            s_char = ' '
+            if '(' in lines[0]:
+                v_idx = 2
+                s_char = ','
+
             for line in lines:
-                parts = line.split(' ')
+                parts = line.split(s_char)
                 if len(parts) > 3:
                     labels.append(counter)
-                    values.append(float(parts[3]))
+                    values.append(float(parts[v_idx].strip()))
                     counter += 1
 
             # Create a bar chart
@@ -507,7 +521,7 @@ class NexGraph:
 
     def disconnect(self) -> bool:
         """Disconnect from the Nextech Gauge.
-        
+
         Returns:
             boolean: "True" if garcefully disconnected."""
         status: bool = False
