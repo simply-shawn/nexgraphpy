@@ -30,3 +30,5 @@
         - "chart" value for out_format arg removed
         - download(out_format="raw|csv", gen_chart=False|True)
         - Default values ("raw", False)
+
+### version 2.2.0
