@@ -32,3 +32,4 @@
         - Default values ("raw", False)
 
 ### version 2.2.0
+    - Add support for the DTT Model
