@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name = 'nexgraphpy',
     packages = ['nexgraphpy'],
-    version = '2.2.0',
+    version = '3.0.0',
     license = 'GNU General Public License',
     description = 'Python library to connect to Nextech DFS or DFT force gauges.',
     author = 'Shawn Myratchapon',

@@ -31,5 +31,5 @@
         - download(out_format="raw|csv", gen_chart=False|True)
         - Default values ("raw", False)
 
-### version 2.2.0
+### version 3.0.0
     - Add support for the DTT Model
